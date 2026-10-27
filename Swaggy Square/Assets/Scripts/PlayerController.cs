@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
@@ -94,7 +95,7 @@ public class PlayerController : MonoBehaviour
 
         vignette.color = new Color(vignette.color.r, vignette.color.g, vignette.color.b, 1f);
 
-        Debug.Log("Death fade finished");
+        SceneManager.LoadScene(sceneBuildIndex: 1);
     }
     protected virtual IEnumerator UpStart()
     {
