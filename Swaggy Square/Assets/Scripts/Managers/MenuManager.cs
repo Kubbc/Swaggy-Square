@@ -1,12 +1,12 @@
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class MenuManager : MonoBehaviour
 {
-    [SerializeField]
-    private GameObject menu;
-
-    private bool menuIsOpen = false;
+    GameObject menu;
+    public bool menuIsOpen = false;
+    public bool selectorMenu = false;
     public static MenuManager Instance { get; private set; }
 
     private void Awake()
@@ -22,14 +22,9 @@ public class MenuManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    public void Breach()
-    {
-        SceneManager.LoadScene(sceneBuildIndex:0);
-    }
-
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyDown(KeyCode.Escape) && !selectorMenu)
         {
             menuIsOpen = !menuIsOpen;
 
@@ -45,5 +40,25 @@ public class MenuManager : MonoBehaviour
                 menu.SetActive(false);
             }
         }
+    }
+
+    private void Start()
+    {
+        menu = GetComponent<Canvas>().transform.Find("Menu")?.gameObject;
+    }
+
+    public void MenuReturn()
+    {
+        SceneManager.LoadScene(sceneBuildIndex: 1);
+
+        selectorMenu = true;
+        Time.timeScale = 1;
+        menu.SetActive(false);
+    }
+    public void Return()
+    {
+        menuIsOpen = !menuIsOpen;
+        Time.timeScale = 1;
+        menu.SetActive(false);
     }
 }

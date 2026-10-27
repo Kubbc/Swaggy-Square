@@ -34,25 +34,28 @@ public class GunController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // aim
-        Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-
-        Vector2 direction = mousePosition - player.position;
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        direction.Normalize();
-
-        transform.rotation = Quaternion.Euler(0, 0, angle);
-        transform.position = player.position + (Vector3)(direction * distance);
-
-        // shoot
-        if (Input.GetMouseButtonDown(0))
+        if (MenuManager.Instance.menuIsOpen == false)
         {
-            Instantiate(shootSFX, transform.position, Quaternion.Euler(0f, 0f, 90f));
+            // aim
+            Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
-            GameObject newBullet = Instantiate(bulletPrefab, gunPoint.position, gunPoint.rotation);
-            newBullet.GetComponent<Bullet>().SetGunController(this);
-            // Recoil
-            player.GetComponent<PlayerController>().ApplyRecoil(-direction * guns[gunInt].gunRecoil);
+            Vector2 direction = mousePosition - player.position;
+            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+            direction.Normalize();
+
+            transform.rotation = Quaternion.Euler(0, 0, angle);
+            transform.position = player.position + (Vector3)(direction * distance);
+
+            // shoot
+            if (Input.GetMouseButtonDown(0))
+            {
+                Instantiate(shootSFX, transform.position, Quaternion.Euler(0f, 0f, 90f));
+
+                GameObject newBullet = Instantiate(bulletPrefab, gunPoint.position, gunPoint.rotation);
+                newBullet.GetComponent<Bullet>().SetGunController(this);
+                // Recoil
+                player.GetComponent<PlayerController>().ApplyRecoil(-direction * guns[gunInt].gunRecoil);
+            }
         }
     }
 }
