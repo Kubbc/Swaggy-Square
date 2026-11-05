@@ -5,7 +5,6 @@ public class SelectorMenuManager : MonoBehaviour
 {
     public void Breach()
     {
-        MenuManager.Instance.selectorMenu = false;
-        SceneManager.LoadScene(sceneBuildIndex: 0);
+        SceneManager.LoadScene(sceneBuildIndex: 1);
     }
 }

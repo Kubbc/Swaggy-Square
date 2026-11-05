@@ -1,6 +1,5 @@
+
 using System.Collections;
-using Unity.AI.Navigation.LowLevel;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
@@ -39,13 +38,18 @@ public class Enemy : MonoBehaviour
     protected float damage;
     [SerializeField]
     protected float enemyDamageDuration;
+    [SerializeField]
+    private GameObject playerHitSFX;
 
     [SerializeField]
     protected float detectionRadius;
+
     protected bool playerDetected = false;
     protected bool hasSpawned = false;
     protected bool isBeingKnockedBack = false;
+
     private Coroutine damageCoroutine;
+
 
     protected virtual void Start()
     {
@@ -56,13 +60,22 @@ public class Enemy : MonoBehaviour
         }
     }
 
+
     protected virtual void Update()
     {
+        // Stop all enemy movement when the player dies.
+        if (playerController.isPlayerDead)
+        {
+            rb.linearVelocity = Vector2.zero;
+            return;
+        }
+
         if (hasSpawned && !isBeingKnockedBack)
         {
             if (playerDetected)
             {
                 var dir = player.position - transform.position;
+
                 rb.linearVelocity = new Vector2(dir.x, dir.y).normalized * speed;
             }
             else
@@ -81,16 +94,19 @@ public class Enemy : MonoBehaviour
         }
     }
 
+
     protected Collider2D[] PlayerDetection()
     {
         return Physics2D.OverlapCircleAll(transform.position, detectionRadius);
     }
+
 
     protected virtual void OnDrawGizmos()
     {
         Gizmos.color = new Color(1, 1, 1, 0.1f);
         Gizmos.DrawSphere(transform.position, detectionRadius);
     }
+
 
     public virtual void EnemyDamage(float damageAmount)
     {
@@ -101,12 +117,11 @@ public class Enemy : MonoBehaviour
             if (deathEffect != null)
             {
                 Instantiate(explosionSFX, transform.position, Quaternion.Euler(0f, 0f, 90f));
-
                 Instantiate(deathEffect, transform.position, Quaternion.Euler(0f, 0f, 90f));
             }
             else
             {
-                Debug.LogError($"{name} has no deathEffect assigned!", this);
+                Debug.LogError($"{name} has no deathEffect assigned", this);
             }
 
             Destroy(gameObject);
@@ -116,8 +131,13 @@ public class Enemy : MonoBehaviour
         StartCoroutine(EnemyUnderDamage());
     }
 
+
     protected virtual void Damage()
     {
+        // Don't damage the player after death.
+        if (playerController.isPlayerDead)
+            return;
+
         if (damageCoroutine != null)
         {
             StopCoroutine(damageCoroutine);
@@ -125,12 +145,17 @@ public class Enemy : MonoBehaviour
             Time.timeScale = 1f;
             isBeingKnockedBack = false;
         }
+
+        Instantiate(playerHitSFX, transform.position, Quaternion.Euler(0f, 0f, 90f));
+
         playerController.playerHealth -= damage;
         playerController.playerImmortallity = true;
+
         damageCoroutine = StartCoroutine(UnderDamage());
+
         StartCoroutine(PlayerImmortallity());
-        Debug.Log("Damage called! Damage amount: " + damage);
     }
+
 
     protected virtual IEnumerator Spawn()
     {
@@ -154,6 +179,7 @@ public class Enemy : MonoBehaviour
         hasSpawned = true;
     }
 
+
     protected virtual IEnumerator EnemyUnderDamage()
     {
         sr.color = Color.white;
@@ -163,26 +189,67 @@ public class Enemy : MonoBehaviour
         sr.color = Color.red;
     }
 
+
     protected virtual IEnumerator UnderDamage()
     {
         Debug.Log("Under damage");
 
+        // Check whether the player has already died.
+        if (playerController.isPlayerDead)
+        {
+            rb.linearVelocity = Vector2.zero;
+            isBeingKnockedBack = false;
+            yield break;
+        }
+
         isBeingKnockedBack = true;
+
         Time.timeScale = 0f;
 
         yield return new WaitForSecondsRealtime(DamageDuration);
 
+
+        // Don't unpause the game if the player died.
+        if (playerController.isPlayerDead)
+        {
+            rb.linearVelocity = Vector2.zero;
+            isBeingKnockedBack = false;
+            yield break;
+        }
+
         Time.timeScale = 1f;
 
+
+        // Apply knockback.
         Vector2 dir = (transform.position - player.position).normalized;
+
         rb.linearVelocity = dir * damageKnockback;
 
         yield return new WaitForSecondsRealtime(0.2f);
 
+
+        // Check again before starting recovery.
+        if (playerController.isPlayerDead)
+        {
+            rb.linearVelocity = Vector2.zero;
+            isBeingKnockedBack = false;
+            yield break;
+        }
+
+
+        // Knockback recovery.
         float elapsed = 0f;
 
         while (elapsed < knockBackRecoveryDuration)
         {
+            // Stop recovery if the player dies.
+            if (playerController.isPlayerDead)
+            {
+                rb.linearVelocity = Vector2.zero;
+                isBeingKnockedBack = false;
+                yield break;
+            }
+
             elapsed += Time.deltaTime;
 
             Vector2 dirToPlayer = (player.position - transform.position).normalized;
@@ -197,16 +264,22 @@ public class Enemy : MonoBehaviour
         isBeingKnockedBack = false;
     }
 
+
     protected virtual IEnumerator PlayerImmortallity()
     {
         int i = 0;
+
         while (i != 4)
         {
             playerController.playerSr.color = Color.white;
+
             yield return new WaitForSecondsRealtime(playerController.playerImmortallitySeconds / 8);
+
             playerController.playerSr.color = playerController.standardColor;
+
             yield return new WaitForSecondsRealtime(playerController.playerImmortallitySeconds / 8);
-            i ++;
+
+            i++;
         }
     }
 }

@@ -21,23 +21,37 @@ public class HarmlessCircle : Enemy
 
     protected override void Update()
     {
-        Vector2 direction = targetLocation - rb.position;
+        if (!playerController.isPlayerDead) 
+        {
+            Vector2 direction = targetLocation - rb.position;
 
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        transform.rotation = Quaternion.Euler(0, 0, angle + 90);
+            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.Euler(0, 0, angle + 90);
+        }
+        else
+        {
+            rb.linearVelocity = Vector2.zero;
+        }
     }
 
     private void FixedUpdate()
     {
-        if (isWaitingForTarget) return;
-
-        Vector2 nextPosition = Vector2.MoveTowards(rb.position, targetLocation, speed * Time.fixedDeltaTime);
-
-        rb.MovePosition(nextPosition);
-
-        if (Vector2.Distance(nextPosition, targetLocation) < 0.01f)
+        if (!playerController.isPlayerDead)
         {
-            StartCoroutine(WaitForNewTarget());
+            if (isWaitingForTarget) return;
+
+            Vector2 nextPosition = Vector2.MoveTowards(rb.position, targetLocation, speed * Time.fixedDeltaTime);
+
+            rb.MovePosition(nextPosition);
+
+            if (Vector2.Distance(nextPosition, targetLocation) < 0.01f)
+            {
+                StartCoroutine(WaitForNewTarget());
+            }
+        }
+        else
+        {
+            rb.linearVelocity = Vector2.zero;
         }
     }
 

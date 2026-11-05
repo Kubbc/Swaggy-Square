@@ -15,6 +15,8 @@ public class GunController : MonoBehaviour
     private Transform gunPoint;
     [SerializeField]
     private GameObject shootSFX;
+    [SerializeField]
+    private MenuManager menuManager;
 
     [Header("Aim Control")]
     [SerializeField]
@@ -34,7 +36,7 @@ public class GunController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (MenuManager.Instance.menuIsOpen == false)
+        if (menuManager.menuIsOpen == false)
         {
             // aim
             Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);

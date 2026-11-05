@@ -11,7 +11,7 @@ public class PlayerController : MonoBehaviour
 
     public float playerHealth;
     private float maxPlayerHealth;
-    private bool isDead = false;
+    public bool isPlayerDead = false;
 
     [SerializeField]
     private float deathDuration;
@@ -20,10 +20,14 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private Rigidbody2D rb;
     [SerializeField]
+    private GameObject playerDeathEffect;
+    [SerializeField]
     private Vector2 recoilVelocity;
     [SerializeField]
     private RawImage vignette;
     public SpriteRenderer playerSr;
+    [SerializeField]
+    private MenuManager menuManager;
 
     [Header("Controller")]
     [SerializeField]
@@ -42,6 +46,8 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (isPlayerDead) return;
+
         float moveX = Input.GetAxisRaw("Horizontal");
         float moveY = Input.GetAxisRaw("Vertical");
 
@@ -52,17 +58,21 @@ public class PlayerController : MonoBehaviour
 
         float healthLost = 1f - (playerHealth / maxPlayerHealth);
 
-        if (!isDead)
+        if (!isPlayerDead)
         {
             float alpha = Mathf.Lerp(0f, 150f / 255f, 1f - (playerHealth / maxPlayerHealth));
 
             vignette.color = new Color(vignette.color.r, vignette.color.g, vignette.color.b, alpha);
         }
 
-        if (playerHealth <= 0 && !isDead)
+        if (playerHealth <= 0 && !isPlayerDead)
         {
-            isDead = true;
+            isPlayerDead = true;
             playerHealth = 0;
+
+            rb.linearVelocity = Vector2.zero;
+            Time.timeScale = 0f;
+
             StartCoroutine(Death());
         }
     }
@@ -74,12 +84,13 @@ public class PlayerController : MonoBehaviour
 
     protected virtual IEnumerator Death()
     {
-        Time.timeScale = 0f;
-
         float startAlpha = 150f / 255f;
         float elapsed = 0f;
 
         Debug.Log("Death fade started");
+
+        yield return new WaitForSecondsRealtime(1.5f);
+        Instantiate(playerDeathEffect, transform.position, Quaternion.Euler(0f, 0f, 90f));
 
         while (elapsed < deathDuration)
         {
@@ -95,7 +106,9 @@ public class PlayerController : MonoBehaviour
 
         vignette.color = new Color(vignette.color.r, vignette.color.g, vignette.color.b, 1f);
 
-        SceneManager.LoadScene(sceneBuildIndex: 1);
+        menuManager.menuIsOpen = true;
+        menuManager.pauseMenu.SetActive(true);
+        Time.timeScale = 0f;
     }
     protected virtual IEnumerator UpStart()
     {

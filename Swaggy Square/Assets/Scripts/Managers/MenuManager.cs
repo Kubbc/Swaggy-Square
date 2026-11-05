@@ -4,23 +4,12 @@ using UnityEngine.SceneManagement;
 
 public class MenuManager : MonoBehaviour
 {
-    GameObject menu;
+    [SerializeField]
+    public GameObject pauseMenu;
+    [SerializeField]
+    private PlayerController playerController;
     public bool menuIsOpen = false;
     public bool selectorMenu = false;
-    public static MenuManager Instance { get; private set; }
-
-    private void Awake()
-    {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        Instance = this;
-
-        DontDestroyOnLoad(gameObject);
-    }
 
     private void Update()
     {
@@ -31,34 +20,39 @@ public class MenuManager : MonoBehaviour
             if (menuIsOpen)
             {
                 Time.timeScale = 0;
-                menu.SetActive(true);
+                pauseMenu.SetActive(true);
             }
                 
             else if (!menuIsOpen)
             {
                 Time.timeScale = 1;
-                menu.SetActive(false);
+                pauseMenu.SetActive(false);
             }
         }
     }
 
     private void Start()
     {
-        menu = GetComponent<Canvas>().transform.Find("Menu")?.gameObject;
+        
     }
 
     public void MenuReturn()
     {
-        SceneManager.LoadScene(sceneBuildIndex: 1);
+        SceneManager.LoadScene(sceneBuildIndex: 0);
 
         selectorMenu = true;
         Time.timeScale = 1;
-        menu.SetActive(false);
+        pauseMenu.SetActive(false);
     }
     public void Return()
     {
         menuIsOpen = !menuIsOpen;
         Time.timeScale = 1;
-        menu.SetActive(false);
+        pauseMenu.SetActive(false);
+
+        if (playerController.isPlayerDead)
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
     }
 }

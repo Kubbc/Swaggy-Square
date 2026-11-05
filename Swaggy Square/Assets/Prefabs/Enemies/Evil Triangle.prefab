@@ -120,11 +120,11 @@ MonoBehaviour:
   DamageDuration: 0.25
   damageKnockback: 4
   knockBackRecoveryDuration: 10
-  playerImmortallitySeconds: 2
   health: 10
   speed: 2.5
   damage: 5
   enemyDamageDuration: 0.05
+  playerHitSFX: {fileID: 3090446682329436343, guid: 10843e4b1a7811442b76ca2837cb44bd, type: 3}
   detectionRadius: 12
 --- !u!50 &3641410648171563174
 Rigidbody2D:
